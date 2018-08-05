@@ -2,9 +2,9 @@ var net = require('net');
 const SQL = require('./SQLClient');
 const readline = require('readline');
 
-var HOST = '192.168.100.5';
+var HOST = '140.127.196.75';
 
-var PORT = '6666';
+var PORT = '7530';
 
 console.log( '======================' );
 
@@ -30,7 +30,7 @@ server.on( 'connection' , function(socket){
 	var MessageQueue = '';
 
 	console.info( 'New Client connected from ' + client);
-	
+
 	console.log( 'Since ' + getDateTime() );
 
 	const QueueMessage = function(data){
@@ -45,37 +45,17 @@ server.on( 'connection' , function(socket){
 			{
 				var Message = MessageQueue.substring( MessageQueue.indexOf(':') + 1, MessageQueue.indexOf(';') );
 				switch (MessageQueue.substring(0, MessageQueue.indexOf(':'))){
-					case 'DeviceID':
+						case 'DeviceID':
 						ID = Message;
 						console.log('DeviceID: ' + ID);
 						console.log( '======================' );
+						SQL.insertConnectHistory(ID, getDateTime());
+						SQL.insertConnectDevice(ID);
 						break;
-					case 'DeviceData':
+						case 'DeviceData':
 						var Data = MessageQueue.substring( MessageQueue.indexOf(':') + 1, MessageQueue.indexOf(',') );
 						var Datetime = MessageQueue.substring( MessageQueue.indexOf(',') + 1, MessageQueue.indexOf(';') );
 						SQL.InsertData(ID, Data, Datetime);
-						break;
-					case 'DeviceGyroscope':
-						var axisX = MessageQueue.substring( MessageQueue.indexOf(':') + 1, MessageQueue.indexOf('@') );
-						var axisY = MessageQueue.substring( MessageQueue.indexOf('@') + 1, MessageQueue.indexOf('#') );
-						var axisZ = MessageQueue.substring( MessageQueue.indexOf('#') + 1, MessageQueue.indexOf(',') );
-						var Datetime = MessageQueue.substring( MessageQueue.indexOf(',') + 1, MessageQueue.indexOf(';') );
-						/*console.log(axisX);
-						console.log(axisY);
-						console.log(axisZ);
-						console.log( '======================' );*/
-						SQL.InsertGyroscopeData(ID, axisX, axisY, axisZ, Datetime);
-						break;
-					case 'DeviceAccelerometer':
-						var axisX = MessageQueue.substring( MessageQueue.indexOf(':') + 1, MessageQueue.indexOf('@') );
-						var axisY = MessageQueue.substring( MessageQueue.indexOf('@') + 1, MessageQueue.indexOf('#') );
-						var axisZ = MessageQueue.substring( MessageQueue.indexOf('#') + 1, MessageQueue.indexOf(',') );
-						var Datetime = MessageQueue.substring( MessageQueue.indexOf(',') + 1, MessageQueue.indexOf(';') );
-						/*console.log(axisX);
-						console.log(axisY);
-						console.log(axisZ);
-						console.log( '======================' );*/
-						SQL.InsertAccelerometerData(ID, axisX, axisY, axisZ, Datetime);
 						break;
 				}
 				MessageQueue = MessageQueue.substring( MessageQueue.indexOf(';') + 1, MessageQueue.length);
@@ -98,6 +78,7 @@ server.on( 'connection' , function(socket){
 	try
 	{
 		socket.on( 'end' , function(){
+			SQL.deleteConnectDevice(ID);
 			console.log( ID + ' disconnect. ' + getDateTime());
 			console.log( '======================' );
 		});
@@ -150,7 +131,7 @@ function HiddenPassword(query, callback) {
                 stdin.pause();
                 break;
             default:
-                process.stdout.write("\033[2K\033[200D" + query + Array(rl.line.length+1).join("*"));
+                process.stdout.write("\033[2K\033[200D" + query + Array(rl.line.length+1).join(""));
                 break;
         }
     });

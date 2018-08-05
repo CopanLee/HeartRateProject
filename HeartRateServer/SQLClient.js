@@ -5,8 +5,8 @@ let pool;
 const config = {
     user:'sa',
     password: '',
-    server: '140.127.196.75',
-    port: 7777,
+    server: '127.0.0.1',
+    port: 7531,
     database: 'HRV_DATA'
 };
 
@@ -55,14 +55,18 @@ var methods = {
         var command = "INSERT INTO RR_interval (DeviceID, DeviceData, StoreDate) VALUES ('" + DeviceID + "', " + DeviceData + ", '" + StoreDate + "')"
         SQLInsertData(command);
     },
-    InsertGyroscopeData: async function(DeviceID, X, Y, Z, StoreDate){
-        var command = "INSERT INTO Gyroscope (DeviceID, axisX, axisY, axisZ, StoreDate) VALUES ('" + DeviceID + "', " + X + ", " + Y + ", " + Z + ", '" + StoreDate + "')"
+    insertConnectHistory: async function(DeviceID, connectDate){
+        var command = "INSERT INTO connectHistory (DeviceID, connectDate) VALUES ('" + DeviceID + "', '" + connectDate + "')"
         SQLInsertData(command);
     },
-    InsertAccelerometerData: async function(DeviceID, X, Y, Z, StoreDate){
-        var command = "INSERT INTO Accelerometer (DeviceID, axisX, axisY, axisZ, StoreDate) VALUES ('" + DeviceID + "', " + X + ", " + Y + ", " + Z + ", '" + StoreDate + "')"
+    insertConnectDevice: async function(DeviceID){
+        var command = "INSERT INTO connectionDevice (DeviceID) VALUES ('" + DeviceID + "')"
         SQLInsertData(command);
-    }
+    },
+    deleteConnectDevice: async function(DeviceID){
+        var command = "DELETE FROM connectionDevice WHERE DeviceID = '" + DeviceID + "'"
+        SQLInsertData(command);
+    },
 };
 
 module.exports = methods
