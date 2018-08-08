@@ -2,7 +2,7 @@ var net = require('net');
 const SQL = require('./SQLClient');
 const readline = require('readline');
 
-var HOST = '140.127.196.75';
+var HOST = 'localhost';
 
 var PORT = '7530';
 
