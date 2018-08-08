@@ -1,0 +1,13 @@
+#btn_top {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+#top_navbar_brand {
+    height: 50px;
+}
+
+copyright_text {
+    font-size: 16px;
+}

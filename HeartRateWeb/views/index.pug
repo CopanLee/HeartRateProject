@@ -1,0 +1,89 @@
+extends layout
+block content
+  nav(class="navbar navbar-expand-lg navbar-light bg-light")
+    a.navbar-brand(id="top_navbar_brand", href="/")
+        img(id="top_logo", src="https://i.imgur.com/AXHeRk5.png", width="40", heigh="40")
+        |
+        |
+        span(class="navbar-brand mb-0 h1") ISU HRV System
+  h2.text-primary(id="online_device_title") 連接中的裝置
+  .online_device_table_div
+    table(id="online_device_table" class="table table-hover")
+        thead
+            tr
+                th 裝置ID
+                th 即時心率圖
+        tbody
+  h2.text-primary(id="all_device_title") 所有裝置
+  .all_device_table_div
+    table(id="all_device_table" class="table table-hover")
+        thead
+            tr
+                th 裝置ID
+                th 上次連接時間
+                th 歷史心率紀錄
+        tbody
+  nav(class="navbar fixed-bottom navbar-light bg-light")
+    a(class="navbar-brand", style="font-size:14px;") © 2018 Copyright ISU CSIE OY-TEAM
+
+  script.
+    function getUrlParam(name){
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");        
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null;
+    }
+    function getConnectDevice(){
+        var historyArray=[], deviceArray=[]
+        var jsonData = $.ajax({
+            url: '_api/device',
+            dataType: 'json'
+        }).done(function (results){
+            if (results['message'] != 'error'){
+                if (results['deviceId'].length > 0){
+                    results['deviceId'].forEach(function(item){ //need fix
+                        deviceArray.push(item)
+                        var jsonData = $.ajax({
+                        url: '_api/history?id=' + item,
+                        dataType: 'json'
+                        }).done(function (results){
+                            if (results['historyDate'] != 'null'){
+                                results['historyDate'].forEach(function(item){
+                                    historyArray.push(item)
+                                })
+                            }
+                            $("#online_device_table > tbody:last-child").append("<tr><td>"+item+"</td><td><a href='/realtime?id="+item+"&date="+historyArray[0]+"' class=\"btn btn-info\" type=\"button\" name=\"chart\">View</button></td></tr>")
+                        })
+                    })
+                }
+            }
+        })
+    }
+    function getAllDevice(){
+        var historyArray=[]
+        var jsonData = $.ajax({
+            url: '/_api/alldevice',
+            dataType: 'json'
+        }).done(function (results){
+            if (results['message'] != 'error'){
+                results['deviceId'].forEach(function(item){
+                    //$("#all_device_table > tbody:last-child").append("<tr><td>"+item+"</td><td>123</td><td><a href='/hrv?id="+item+"' class=\"btn btn-info\" type=\"button\" name=\"chart\">View</button></td>></tr>")
+                    var jsonData = $.ajax({
+                    url: '_api/history?id=' + item,
+                    dataType: 'json'
+                    }).done(function (results){
+                        if (results['historyDate'] != 'null'){
+                            results['historyDate'].forEach(function(item){
+                                historyArray.push(item)
+                            })
+                        }
+                        var lastConnectDateView = historyArray[0].replace('T',' ').substring(0,historyArray[0].length-5)
+                        $("#all_device_table > tbody:last-child").append("<tr><td>"+item+"</td><td>"+lastConnectDateView+"</td><td><a href='/hrv?id="+item+"' class=\"btn btn-info\" type=\"button\" name=\"chart\">View</button></td>></tr>")
+                    })
+                })
+            }
+        })
+    }
+    getAllDevice()
+    getConnectDevice()
+
+        

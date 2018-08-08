@@ -1,0 +1,124 @@
+extends layout
+block content
+  nav(class="navbar navbar-expand-lg navbar-light bg-light")
+    a.navbar-brand(id="top_navbar_brand", href="/")
+        img(id="top_logo", src="/images/Logo_of_ISU.png", width="40", heigh="40")
+        |
+        |
+        span(class="navbar-brand mb-0 h1") ISU HRV System
+  <!--button(id="btn_top", onclick="goBackToTop()", class="btn btn-secondary") 回到頂部-->
+  div
+    h2(id="deviceHistory_table_div", class="text-primary",margin-left="20px") 紀錄表
+  div(id="chart_view_div")
+    div(id="heartratechart" style="width:80%;")
+      canvas(id="myChart")
+      button(class="btn btn-dark", type="button", onclick="isChartVisible(false)") 關閉圖表
+  div(id="deviceHistory_table_div")
+    table(id="deviceHistory_table" class="table table-hover")
+      thead
+        tr
+          th 紀錄開始時間
+          th 紀錄時長
+          th 資料筆數
+          th 情緒分析結果
+          th 顯示心率圖
+      tbody
+  nav(class="navbar navbar-default navbar-fixed-bottom")
+    a(class="navbar-brand", style="font-size:14px;") © 2018 Copyright ISU CSIE OY-TEAM
+
+
+  script.
+    var historyArray=[], jsonUrlArray=[], dataArray=[]
+    function getUrlParam(name){
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");        
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null;
+    }
+    function isChartVisible(bool,dataIndex){
+      if (bool){
+        drawLineChart(dataArray[dataIndex])
+        $("#chart_view_div").show()
+        if($(window).scrollTop() >= 80){
+          $('html,body').animate({ scrollTop: 0 }, 500)
+        }
+      }else{
+        $("#chart_view_div").hide(250)
+      }
+    }
+    function drawLineChart(data){
+      var tempData = {
+          type: 'line',
+          data: {
+              labels: data['dateArray'],
+              datasets: [{
+                  label: data['selectId'],
+                  data: data['dataArray'],
+                  backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                  borderColor: 'rgba(255,99,132,1)',
+                  borderWidth: 1,
+                  lineTension: 0,
+                  fill:0
+              }]
+          },
+          options: {
+                  scales: {
+                      yAxes: [{
+                          ticks: {
+                              beginAtZero:true
+                          }
+                      }]
+                  },
+                  animation: {
+                      duration: 0,
+                  },
+                  hover: {
+                      animationDuration: 0,
+                  },
+                  responsiveAnimationDuration: 0,
+              }
+      }
+      var ctx = document.getElementById("myChart").getContext('2d')
+      myChart = new Chart(ctx, tempData)
+      tempData = tempData
+    }
+    function getHeartRateDataAndSettingTable(){
+      var dataIndex = -1
+      for(index=0;index<historyArray.length;index++){
+        jsonUrlArray.push('_api/data?id=' + getUrlParam('id') + '&start=' + historyArray[index+1] + '&end=' + historyArray[index])
+        var jsonData = $.ajax({
+          url: jsonUrlArray[index], //fix 7/31
+          dataType: 'json'
+          }).done(function (results){
+            if(results['dataCount'] > 0){
+              dataIndex += 1
+              dataArray.push(results)
+              var recordStartDateView = results['dateArray'][0].replace('T',' ').substring(0,results['dateArray'][0].length-5)
+              var dateToUnixTime = (new Date(results['dateArray'][results['dateArray'].length-1]).getTime() / 1000 - new Date(results['dateArray'][0]).getTime() / 1000).toFixed(3)
+              var tableString = "<tr><td>" + recordStartDateView + "</td><td>"+dateToUnixTime+"s</td><td>"+ results['dataCount'] +"</td><td>Null</td><td><button id='chartView' class='btn btn-info' type='button' onclick='isChartVisible(true,"+dataIndex+")'>顯示心率圖</button></td></tr>"
+              $("#deviceHistory_table > tbody:last-child").append(tableString)
+            }
+          })
+      }
+    }
+    function getConnectHistory(){
+      var jsonData = $.ajax({
+        url: '_api/history?id=' + getUrlParam('id'), //fixed 7/31
+        dataType: 'json'
+        }).done(function (results){
+          if (results['historyDate'] != 'null'){
+            results['historyDate'].forEach(function(item){
+              historyArray.push(item)
+            })
+            getHeartRateDataAndSettingTable()
+          }
+        })
+    }
+    function goBackToTop(){
+       $('html,body').animate({ scrollTop: 0 }, 250);
+    }
+    if(getUrlParam('id') != null){
+      getConnectHistory()
+      isChartVisible(false)
+    }
+    
+    

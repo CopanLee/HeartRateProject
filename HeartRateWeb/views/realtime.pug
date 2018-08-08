@@ -1,0 +1,95 @@
+extends layout
+block content
+  nav(class="navbar navbar-expand-lg navbar-light bg-light")
+    a.navbar-brand(id="top_navbar_brand", href="/")
+        img(id="top_logo", src="/images/Logo_of_ISU.png", width="40", heigh="40")
+        |
+        |
+        span(class="navbar-brand mb-0 h1") ISU HRV System
+  div
+    h2(id="alerttitle", class="text-primary",margin-left="20px") 即時心率圖
+    div(id="heartratechart" style="width:80%;")
+        canvas(id="myChart")
+  nav(class="navbar navbar-default navbar-fixed-bottom")
+    a(class="navbar-brand", style="font-size:14px;") © 2018 Copyright ISU CSIE OY-TEAM
+  script.
+    var myChart, tempData;
+    function getUrlParam(name){
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");        
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null; 
+    }
+    function drawLineChart(){
+        var jsonData = $.ajax({
+            url: '_api/realtime?id=' + getUrlParam('id') + '&date=' + getUrlParam('date'),
+            dataType: 'json'
+        }).done(function (results){
+            if (results["message"] != "error"){
+                var labels = [], data = [];
+                results['data'].forEach(function(item){
+                    data.push(item)
+                })
+                results['date'].forEach(function(item){
+                    labels.push(item)
+                })
+                var tempData = {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'TSQI-8E8M',
+                            data: data,
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            borderColor: 'rgba(255,99,132,1)',
+                            borderWidth: 1,
+                            lineTension: 0,
+                            fill:0
+                        }]
+                    },
+                    options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true
+                                    }
+                                }]
+                            },
+                            animation: {
+                                duration: 0,
+                            },
+                            hover: {
+                                animationDuration: 0,
+                            },
+                            responsiveAnimationDuration: 0,
+                        }
+                }
+                var ctx = document.getElementById("myChart").getContext('2d')
+                myChart = new Chart(ctx, tempData)
+                tempData = tempData
+            }
+        })
+    }
+    function getChartLatestData(){
+        myChart.destroy()            
+        var jsonData = $.ajax({
+            url: '_api/realtime?id=' + getUrlParam('id') + '&date=' + getUrlParam('date'),
+            dataType: 'json'
+        }).done(function (results){
+            if (results["message"] != "error"){
+                var labels = [], data = [];
+                results['data'].forEach(function(item){
+                    data.push(item)
+                })
+                results['date'].forEach(function(item){
+                    labels.push(item)
+                })
+                var ctx = document.getElementById("myChart").getContext('2d')
+                myChart = new Chart(ctx, tempData)
+            }
+        })
+    }
+    if(getUrlParam('id') != null){
+        
+        drawLineChart()
+        var update = setInterval(drawLineChart,500)
+    }
