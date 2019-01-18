@@ -17,4 +17,4 @@
 <br><br>API
 <br>![GITHUB](https://i.imgur.com/1XfeaGq.png)
 # Server
-<br>![GITHUB](https://i.imgur.com/FUSdBM8.png)
+<br>![GITHUB](https://i.imgur.com/6BImxX1.png)
